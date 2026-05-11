@@ -5,6 +5,8 @@ import type { FileState, User } from "../../../shared/types";
 import { DecorationManager } from "./DecorationManager";
 import { LockManager } from "./LockManager";
 import { RoleEngine } from "../engine/RoleEngine";
+import { registerAllLanguages, detectLanguage } from "./languages/index";
+import { registerHoverProvider } from "./hover/index";
 
 interface EditorInstanceProps {
   file: FileState;
@@ -117,30 +119,14 @@ export const EditorInstance = ({
 
   // Determine language from file name
   const getLanguage = (fileName: string): string => {
-    const ext = fileName.split(".").pop()?.toLowerCase();
-    const map: Record<string, string> = {
-      ts: "typescript",
-      tsx: "typescript",
-      js: "javascript",
-      jsx: "javascript",
-      py: "python",
-      json: "json",
-      md: "markdown",
-      css: "css",
-      html: "html",
-      yaml: "yaml",
-      yml: "yaml",
-      sh: "shell",
-      env: "plaintext",
-      txt: "plaintext",
-    };
-    return map[ext ?? ""] ?? "plaintext";
+    return detectLanguage(fileName);
   };
 
   // Suppress monaco warnings about unused imports
   useEffect(() => {
     if (!monaco) return;
-
+    registerAllLanguages(monaco);
+    registerHoverProvider(monaco);
     // Define Ikeloa's custom dark theme
     monaco.editor.defineTheme("ikeloa-dark", {
       base: "vs-dark",
